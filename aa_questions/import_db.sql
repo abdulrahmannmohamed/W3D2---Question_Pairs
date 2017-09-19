@@ -55,18 +55,24 @@ INSERT INTO
   users (fname, lname)
 VALUES
   ('Abdul', 'Mohamed'),
-  ('Glenn', 'Tigas');
+  ('Glenn', 'Tigas'),
+  ('Barack', 'Obama');
 
 INSERT INTO
   questions (title, body, author_id)
 VALUES
   ('Why?', 'WHy is the sky blue?', (SELECT id FROM users WHERE fname = 'Glenn')),
-  ('Whyyy?', 'WHyyyyy is the sky blue?', (SELECT id FROM users WHERE fname = 'Glenn'));
+  ('Whyyy?', 'WHyyyyy is the sky blue?', (SELECT id FROM users WHERE fname = 'Glenn')),
+  ('Chicken', 'Why did the chicken cross the road?', (SELECT id FROM users WHERE fname = 'Abdul')),
+  ('Why2?', 'WHy is the sky blue?', (SELECT id FROM users WHERE fname = 'Barack'));
 
 INSERT INTO
   question_follows (question_id, user_id)
 VALUES
-  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Abdul'));
+  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Abdul')),
+  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Barack')),
+  ((SELECT id FROM questions WHERE title = 'Chicken'), (SELECT id FROM users WHERE fname = 'Glenn'));
+
 
 INSERT INTO
   replies (question_id, parent_reply_id, user_id, body)
@@ -78,4 +84,6 @@ VALUES
 INSERT INTO
   question_likes (question_id, user_id)
 VALUES
-  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Abdul'));
+  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Abdul')),
+  ((SELECT id FROM questions WHERE title = 'Chicken'), (SELECT id FROM users WHERE fname = 'Glenn')),
+  ((SELECT id FROM questions WHERE title = 'Why?'), (SELECT id FROM users WHERE fname = 'Barack'));
