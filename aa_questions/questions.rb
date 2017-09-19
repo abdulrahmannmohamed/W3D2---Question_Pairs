@@ -2,6 +2,12 @@ require_relative 'QuestionsDatabase'
 
 class Question
   attr_accessor :id, :title, :body, :author_id
+
+  def self.all
+    data = QuestionsDatabase.instance.execute("SELECT * FROM questions")
+    data.map {|datum| Question.new(datum)}
+  end
+
   def self.find_by_id(id)
     question = QuestionsDatabase.instance.execute(<<-SQL, id)
     SELECT
@@ -59,7 +65,34 @@ class Question
   def likers
     QuestionLike.likers_for_question_id(@id)
   end
+
   def num_likes
     QuestionLike.num_likes_for_question_id(@id)
+  end
+
+  def save
+    if @id
+      update_database
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, @title, @body, @author_id)
+        INSERT INTO
+          questions (title, body, author_id)
+        VALUES
+          (?, ?, ?)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    end
+  end
+
+  def update_database
+    raise "Not in database" unless @id
+    QuestionsDatabase.instance.execute(<<-SQL, @title, @body, @author_id, @id)
+      UPDATE
+        questions
+      SET
+        title = ?, body = ?, author_id = ?
+      WHERE
+        id = ?
+    SQL
   end
 end

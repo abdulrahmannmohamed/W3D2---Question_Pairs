@@ -1,8 +1,13 @@
 require_relative 'QuestionsDatabase'
 
 
-class User
+class User 
   attr_accessor :id, :fname, :lname
+
+  def self.all
+    data = QuestionsDatabase.instance.execute("SELECT * FROM users")
+    data.map {|datum| User.new(datum)}
+  end
 
   def self.find_by_id(id)
     user = QuestionsDatabase.instance.execute(<<-SQL, id)
@@ -68,12 +73,29 @@ class User
   end
 
   def save
-    QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname)
-      INSERT INTO
-        users(fname, lname)
-      VALUES
-        (?, ?)
-    SQL
-    @id = QuestionsDatabase.instance.last_insert_row_id
+    if @id
+      update_database
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname)
+        INSERT INTO
+          users(fname, lname)
+        VALUES
+          (?, ?)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    end
   end
+
+  def update_database
+    raise "Not in database" unless @id
+    QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname, @id)
+      UPDATE
+        users
+      SET
+        fname = ?, lname = ?
+      WHERE
+        id = ?
+    SQL
+  end
+
 end

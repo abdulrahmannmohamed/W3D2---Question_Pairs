@@ -4,6 +4,11 @@ require_relative 'QuestionsDatabase'
 class Reply
   attr_accessor :id, :question_id, :parent_reply_id, :user_id, :body
 
+  def self.all
+    data = QuestionsDatabase.instance.execute("SELECT * FROM replies")
+    data.map {|datum| Reply.new(datum)}
+  end
+
   def self.find_by_id(id)
     reply = QuestionsDatabase.instance.execute(<<-SQL, id)
       SELECT
@@ -81,5 +86,33 @@ class Reply
   def child_replies
     Reply.find_by_parent_id(@id)
   end
+
+  def save
+    if @id
+      update_database
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, @question_id, @parent_reply_id, @user_id, @body)
+        INSERT INTO
+          replies (question_id, parent_reply_id, user_id, body)
+        VALUES
+          (?, ?, ?, ?)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    end
+
+  end
+
+  def update_database
+    raise "Not in database" unless @id
+    QuestionsDatabase.instance.execute(<<-SQL, @question_id, @parent_reply_id, @user_id, @body, @id)
+      UPDATE
+        replies
+      SET
+        question_id = ?, parent_reply_id = ?, @user_id = ?, @body = ?
+      WHERE
+        id = ?
+    SQL
+  end
+
 
 end
